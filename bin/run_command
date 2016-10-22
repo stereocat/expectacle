@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'simple_command_thrower'
+
+if ARGV.size != 2
+  puts "#{$0} <host_list.yml> <command_list.yml>"
+  exit
+end
+thrower = SimpleCommandThrower::Arm.new(base_dir: '/../../vendor')
+thrower.run_command_for_all_hosts(ARGV[0], ARGV[1])

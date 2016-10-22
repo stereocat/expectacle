@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+read -sp 'Input: ' pass
+echo $pass

@@ -1,0 +1,3 @@
+- 'ovs-vsctl list-br'
+- 'ovs-vsctl show'
+- 'ovs-ofctl dump-flows br0'

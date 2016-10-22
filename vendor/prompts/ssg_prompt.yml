@@ -1,0 +1,9 @@
+:password : '^password:\s*'
+:username : '^login:\s*'
+:sub1 : 'DO_NOT_USE_FOR_SSG'
+:sub2 : 'DO_NOT_USE_FOR_SSG'
+:yn : '\[yes\/no\]:'
+:command1 : 'DO_NOT_USE_FOR_SSG'
+:command2 : '^[\w\-]+:[\w\-]+\([A-Z]+\)'
+:enable_password : 'DO_NOT_USE_FOR_SSG'
+:enable_command: '' # none
