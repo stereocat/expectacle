@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['stereocat']
   spec.email         = ['stereocat@gmail.com']
 
-  spec.summary       = %q{Simple expect wrapper to send command to a device.}
+  spec.summary       = %q{Simple expect wrapper to send commands to devices.}
   spec.description   = %q{SimpleCommandThrower is simple wrapper of pty/expect.}
   spec.homepage      = 'https://github.com/stereocat/simple_command_thrower'
   spec.license       = 'MIT'

@@ -5,6 +5,7 @@
   :username : "<%= ENV['L2SW_USER'] %>"
   :password : "<%= ENV['L2SW_PASS'] %>"
   :enable : "<%= ENV['L2SW_PASS'] %>"
+  :tftp_server: '192.168.2.16'
 - :hostname : 'l2sw2'
   :type : 'c3750g'
   :ipaddr : '192.168.0.2'
@@ -12,3 +13,4 @@
   :username : "<%= ENV['L2SW_USER'] %>"
   :password : "<%= ENV['L2SW_PASS'] %>"
   :enable : "<%= ENV['L2SW_PASS'] %>"
+  :tftp_server: '192.168.2.16'

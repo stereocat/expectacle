@@ -6,7 +6,7 @@ using telnet/ssh session.
 
 SimpleCommandThrower is portable (instead of less feature).
 Because it depends on only standard modules (YAML, ERB, PTY, Expect).
-It can work on almost ruby(>2.2) system without installation other gems.
+It can work on almost ruby(>2.2) system without installation other gems. (probably :simple_smile: )
 
 ## Installation
 
@@ -36,7 +36,7 @@ See `bin/run_command` and `vendor` directory.
 - `l2switch.yml` is host-list file.
   It is a data definitions for each hosts to send commands.
   - At username and password (login/enable) parameter,
-    a user can write environment variables with ERB manner to avoid write raw login information.
+    you can write environment variables with ERB manner to avoid write raw login information.
   - `bin/readne` is a small utility shell-script to set environment variable from CLI.
 
 ```
@@ -55,6 +55,8 @@ Input: (type password)
   - it is a list of commands.
 - Each files are written by YAML.
 
+## Parameter Definitions
+
 ### `SimpleCommandThrower::Arm`
 
 `SimpleCommandThrower::Arm` argument description.
@@ -72,7 +74,6 @@ Input: (type password)
 it will change to privilege (root/super-user/enable) mode at first, ASAP.
 All commands are executed with privilege mode at the host.
 
-
 ### Host-list parameter
 Host-list file is a list of host-parameters.
 - `:hostname`: Indication String of host name.
@@ -84,6 +85,9 @@ Host-list file is a list of host-parameters.
 - `:enable`: Password to be privilege mode.
 
 It can use ERB to set values from environment variable in `:username`, `:password` and `:enable`.
+
+You can add other parameter(s) to refer in command-list files.
+See also: "Command list" section.
 
 ### Prompt parameter
 Prompt file is a table of prompt regexp of host group(type).
@@ -98,14 +102,53 @@ Prompt file is a table of prompt regexp of host group(type).
 - `enable_command`: command to be privilege mode
   (Only this parameter is not a "prompt regexp")
 
-## Development
+### Command list with ERB
+Command-list is a simple list of command-string.
+A command-string can contain host-parameter reference by ERB.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+For example, if you want to save configuration of a cisco device to tftp server:
+- Add a parameter to tftp server info (IP address) in host-list file. (`vendor/hosts/l2switch.yml`)
+```YAML
+- :hostname : 'l2sw1'
+  :type : 'c3750g'
+  :ipaddr : '192.168.0.1'
+  :protocol : 'ssh'
+  :username : "<%= ENV['L2SW_USER'] %>"
+  :password : "<%= ENV['L2SW_PASS'] %>"
+  :enable : "<%= ENV['L2SW_PASS'] %>"
+  :tftp_server: '192.168.2.16'
+- :hostname : 'l2sw2'
+  :type : 'c3750g'
+  :ipaddr : '192.168.0.2'
+  :protocol : 'ssh'
+  :username : "<%= ENV['L2SW_USER'] %>"
+  :password : "<%= ENV['L2SW_PASS'] %>"
+  :enable : "<%= ENV['L2SW_PASS'] %>"
+  :tftp_server: '192.168.2.16'
+```
+
+- Write command-list file using ERB.
+  When send a command to host, ERB string was evaluated in `SimpleCommandThrower::Arm` bindings.
+  Then, it can refer host-parameter as `@host_param` hash. (`vendor/commands/cisco_save_config_tftp.yml`)
+  -  When exec below command-list, host configuration will be saved a file as `l2sw1.confg` on tftp server.
+
+```YAML
+- "copy run start"
+- "copy run tftp://<%= @host_param[:tftp_server] %>/<%= @host_param[:hostname] %>.confg"
+```
+
+## TODO
+
+### Sub prompt operation (interactive command)
+Feature for sub-prompt (interactive command) is not enough.
+Now, SimpleCommandThrower sends fixed command for sub-prompt.
+(These actions were defined for cisco to execute above "copy run" example...)
+- Yex/No (`:yn`) : always sends "yes"
+- Sub prompt (`:sub1` and `:sub2`) : Empty string (RETURN)
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/simple_command_thrower. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
+Bug reports and pull requests are welcome on GitHub at <https://github.com/stereocat/simple_command_thrower>.
 
 ## License
 

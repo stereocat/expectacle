@@ -1,0 +1,2 @@
+- "copy run start"
+- "copy run tftp://<%= @host_param[:tftp_server] %>/<%= @host_param[:hostname] %>.confg"
