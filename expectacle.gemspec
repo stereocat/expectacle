@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'simple_command_thrower/version'
+require 'expectacle/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'simple_command_thrower'
-  spec.version       = SimpleCommandThrower::VERSION
+  spec.name          = 'expectacle'
+  spec.version       = Expectacle::VERSION
   spec.authors       = ['stereocat']
   spec.email         = ['stereocat@gmail.com']
 
-  spec.summary       = %q{Simple expect wrapper to send commands to devices.}
-  spec.description   = %q{SimpleCommandThrower is simple wrapper of pty/expect.}
-  spec.homepage      = 'https://github.com/stereocat/simple_command_thrower'
+  spec.summary       = %q{Simple expect wrapper to send commands to a devices.}
+  spec.description   = %q{Expectacle is simple wrapper of pty/expect.}
+  spec.homepage      = 'https://github.com/stereocat/expectacle'
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'

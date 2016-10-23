@@ -6,8 +6,8 @@ require 'yaml'
 require 'erb'
 require 'logger'
 
-module SimpleCommandThrower
-  class Arm
+module Expectacle
+  class Thrower
     def initialize(timeout: 60, verbose: true, base_dir: '', logger: $stdout)
       # remote connection timeout (sec)
       @timeout = timeout
@@ -59,7 +59,7 @@ module SimpleCommandThrower
 
     def setup_logger
       @logger.level = Logger::INFO
-      @logger.progname = 'CommandThrower'
+      @logger.progname = 'Expectacle'
       @logger.datetime_format = '%Y-%m-%d %H:%M:%D %Z'
       @logger.formatter = proc {|severity, datetime, progname, msg| "#{datetime} #{progname} [#{severity}] #{msg}\n"}
     end

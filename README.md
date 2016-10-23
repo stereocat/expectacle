@@ -1,10 +1,10 @@
-# SimpleCommandThrower
+# Expectacle
 
-SimpleCommandThrower is a small wrapper of `pty/expect`.
+Expectacle is a small wrapper of `pty/expect`.
 It can send commands (command-list) to hosts (including network devices etc)
 using telnet/ssh session.
 
-SimpleCommandThrower is portable (instead of less feature).
+Expectacle is portable (instead of less feature).
 Because it depends on only standard modules (YAML, ERB, PTY, Expect).
 It can work on almost ruby(>2.2) system without installation other gems. (probably :simple_smile: )
 
@@ -13,7 +13,7 @@ It can work on almost ruby(>2.2) system without installation other gems. (probab
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'simple_command_thrower'
+gem 'expectacle'
 ```
 
 And then execute:
@@ -22,7 +22,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install simple_command_thrower
+    $ gem install expectacle
 
 ## Usage
 
@@ -46,7 +46,7 @@ $ export L2SW_PASS=`./bin/readne`
 Input: (type password)
 ```
 
-- `SimpleCommandThrowre::Arm` read prompt-file by "type" parameter in host-list file.
+- `SimpleCommandThrowre::Thrower` read prompt-file by "type" parameter in host-list file.
   - In prompt-file, prompt regexps that used for interactive operation to host
     are defined. (These regexp are common information for some host-groups. (vendor, OS, ...))
   - Prompt-file is searched by filename: `#{type}_prompt.yml`,
@@ -57,20 +57,20 @@ Input: (type password)
 
 ## Parameter Definitions
 
-### `SimpleCommandThrower::Arm`
+### Expectacle::Thrower
 
-`SimpleCommandThrower::Arm` argument description.
+`Expectacle::Thrower` argument description.
 - `:timeout` : (Optional) Timeout interval (sec) to connect a host. (default: 60sec)
 - `:verbose` : (Optional) When `:verbose` is `false`,
-  `SimpleCommandThrower` does not output spawned process input/output to standard-out(`$stdout`).
+  `Expectacle` does not output spawned process input/output to standard-out(`$stdout`).
   (default: `true`)
 - `:base_dir`: (Optional) Base path to search host/prompt/command files.
   - `#{base_dir}/commands`: command-list file directory.
   - `#{base_dir}/prompts` : prompt-file directory.
   - `#{base_dir}/hosts` : host-file directory.
-- `:logger` : (Optional) IO object to logging `SimpleCommandThrower` operations. (default: `$stdout`)
+- `:logger` : (Optional) IO object to logging `Expectacle` operations. (default: `$stdout`)
 
-**Notice** : When `SimpleCommandThrower` success to connect(spawn) host,
+**Notice** : When `Expectacle` success to connect(spawn) host,
 it will change to privilege (root/super-user/enable) mode at first, ASAP.
 All commands are executed with privilege mode at the host.
 
@@ -128,7 +128,7 @@ For example, if you want to save configuration of a cisco device to tftp server:
 ```
 
 - Write command-list file using ERB.
-  When send a command to host, ERB string was evaluated in `SimpleCommandThrower::Arm` bindings.
+  When send a command to host, ERB string was evaluated in `SimpleCommandThrower::Thrower` bindings.
   Then, it can refer host-parameter as `@host_param` hash. (`vendor/commands/cisco_save_config_tftp.yml`)
   -  When exec below command-list, host configuration will be saved a file as `l2sw1.confg` on tftp server.
 
