@@ -1,0 +1,2 @@
+- "save config"
+- "save config to tftp <%= @host_param[:tftp_server] %> <%= @host_param[:hostname] %>.confg from eth0/1"
