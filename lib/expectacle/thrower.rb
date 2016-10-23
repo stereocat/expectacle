@@ -8,6 +8,8 @@ require 'logger'
 
 module Expectacle
   class Thrower
+    attr_accessor :logger
+
     def initialize(timeout: 60, verbose: true, base_dir: '', logger: $stdout)
       # remote connection timeout (sec)
       @timeout = timeout
@@ -18,8 +20,7 @@ module Expectacle
       # base dir
       @base_dir = File.expand_path(__dir__ + base_dir)
       # logger
-      @logger = Logger.new(logger)
-      setup_logger
+      setup_default_logger(logger)
     end
 
     def prompts_dir
@@ -57,7 +58,8 @@ module Expectacle
       end
     end
 
-    def setup_logger
+    def setup_default_logger(logger_io)
+      @logger = Logger.new(logger_io)
       @logger.level = Logger::INFO
       @logger.progname = 'Expectacle'
       @logger.datetime_format = '%Y-%m-%d %H:%M:%D %Z'
@@ -86,6 +88,7 @@ module Expectacle
       begin
         until @reader.eof?
           @reader.expect(expect_regexp, @timeout) do |match|
+            @logger.debug match
             exec_each_prompt match[1], cmd_list
           end
         end
