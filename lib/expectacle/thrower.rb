@@ -96,13 +96,26 @@ module Expectacle
       end
     end
 
+    def check_embed_envvar(command)
+      if command =~ /<%=\s*ENV\[[\'\"]?(.+)[\'\"]\]?\s*%>/
+        envvar_name = $1
+        if !ENV.has_key?(envvar_name)
+          @logger.error "Variable name: #{envvar_name} is not found in ENV"
+        elsif ENV[envvar_name] =~ /^\s*$/
+          @logger.warn "Env var: #{envvar_name} exists, but null string"
+        end
+      end
+    end
+
     def embed_user_name(binding)
+      check_embed_envvar(@host_param[:username])
       uname_erb = ERB.new(@host_param[:username])
       uname_erb.result(binding)
     end
 
     def embed_password(binding)
       base_str = @enable_mode ? @host_param[:enable] : @host_param[:password]
+      check_embed_envvar(base_str)
       passwd_erb = ERB.new(base_str)
       passwd_erb.result(binding)
     end
