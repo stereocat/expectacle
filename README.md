@@ -1,12 +1,12 @@
 # Expectacle
 
-Expectacle is a small wrapper of `pty/expect`.
+Expectacle ("expect + spectacle") is a small wrapper of `pty/expect`.
 It can send commands (command-list) to hosts (including network devices etc)
 using telnet/ssh session.
 
 Expectacle is portable (instead of less feature).
 Because it depends on only standard modules (YAML, ERB, PTY, Expect).
-It can work on almost ruby(>2.2) system without installation other gems. (probably :simple_smile: )
+It can work on almost ruby(>2.2) system without installation other gems. (probably...)
 
 ## Installation
 
@@ -128,7 +128,7 @@ For example, if you want to save configuration of a cisco device to tftp server:
 ```
 
 - Write command-list file using ERB.
-  When send a command to host, ERB string was evaluated in `SimpleCommandThrower::Thrower` bindings.
+  When send a command to host, ERB string was evaluated in `Expectacle::Thrower` bindings.
   Then, it can refer host-parameter as `@host_param` hash. (`vendor/commands/cisco_save_config_tftp.yml`)
   -  When exec below command-list, host configuration will be saved a file as `l2sw1.confg` on tftp server.
 
@@ -141,16 +141,15 @@ For example, if you want to save configuration of a cisco device to tftp server:
 
 ### Sub prompt operation (interactive command)
 Feature for sub-prompt (interactive command) is not enough.
-Now, SimpleCommandThrower sends fixed command for sub-prompt.
+Now, Expectacle sends fixed command for sub-prompt.
 (These actions were defined for cisco to execute above "copy run" example...)
 - Yex/No (`:yn`) : always sends "yes"
 - Sub prompt (`:sub1` and `:sub2`) : Empty string (RETURN)
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at <https://github.com/stereocat/simple_command_thrower>.
+Bug reports and pull requests are welcome on GitHub at <https://github.com/stereocat/expectacle>.
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
