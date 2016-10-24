@@ -63,7 +63,7 @@ module Expectacle
       @logger.level = Logger::INFO
       @logger.progname = 'Expectacle'
       @logger.datetime_format = '%Y-%m-%d %H:%M:%D %Z'
-      @logger.formatter = proc {|severity, datetime, progname, msg| "#{datetime} #{progname} [#{severity}] #{msg}\n"}
+      @logger.formatter = proc { |severity, datetime, progname, msg| "#{datetime} #{progname} [#{severity}] #{msg}\n" }
     end
 
     def load_prompt_regexp
@@ -101,8 +101,8 @@ module Expectacle
 
     def check_embed_envvar(command)
       if command =~ /<%=\s*ENV\[[\'\"]?(.+)[\'\"]\]?\s*%>/
-        envvar_name = $1
-        if !ENV.has_key?(envvar_name)
+        envvar_name = Regexp.last_match(1)
+        if !ENV.key?(envvar_name)
           @logger.error "Variable name: #{envvar_name} is not found in ENV"
         elsif ENV[envvar_name] =~ /^\s*$/
           @logger.warn "Env var: #{envvar_name} exists, but null string"
@@ -130,32 +130,32 @@ module Expectacle
 
     def make_spawn_command
       case @host_param[:protocol]
-        when /^telnet$/i
-          ['telnet', @host_param[:ipaddr]].join(' ')
-        when /^ssh$/i
-          ['ssh',
-           '-o StrictHostKeyChecking=no',
-           '-o KexAlgorithms=+diffie-hellman-group1-sha1', # for old cisco device
-           '-l', embed_user_name(binding),
-           @host_param[:ipaddr]].join(' ')
-        else
-          @logger.error "Unknown protocol #{@host_param[:protocol]}"
-          nil
+      when /^telnet$/i
+        ['telnet', @host_param[:ipaddr]].join(' ')
+      when /^ssh$/i
+        ['ssh',
+         '-o StrictHostKeyChecking=no',
+         '-o KexAlgorithms=+diffie-hellman-group1-sha1', # for old cisco device
+         '-l', embed_user_name(binding),
+         @host_param[:ipaddr]].join(' ')
+      else
+        @logger.error "Unknown protocol #{@host_param[:protocol]}"
+        nil
       end
     end
 
     def expect_regexp
-      %r!
+      /
         ( #{@prompt[:password]} | #{@prompt[:enable_password]}
         | #{@prompt[:username]}
         | #{@prompt[:command1]} | #{@prompt[:command2]}
         | #{@prompt[:sub1]} | #{@prompt[:sub2]}
         | #{@prompt[:yn]}
         )\s*$
-      !x
+      /x
     end
 
-    def write_and_logging(message, command, secret=false)
+    def write_and_logging(message, command, secret = false)
       logging_message = secret ? message : message + command
       @logger.info logging_message
       @writer.puts command
@@ -163,31 +163,31 @@ module Expectacle
 
     def exec_each_prompt(prompt, cmd_list)
       case prompt
-        when /#{@prompt[:password]}/, /#{@prompt[:enable_password]}/
-          write_and_logging 'Send password', embed_password(binding), true
-        when /#{@prompt[:username]}/
-          write_and_logging 'Send username: ', embed_user_name(binding)
-        when /#{@prompt[:command2]}/
-          if cmd_list.length > 0
-            # Notice `cmd_list` was changed
-            write_and_logging 'Send command: ', embed_command(cmd_list.shift, binding)
-          else
-            write_and_logging 'Send break: ', 'exit'
-          end
-        when /#{@prompt[:command1]}/
-          if cmd_list.length > 0
-            write_and_logging 'Send enable command: ', @prompt[:enable_command]
-            @enable_mode = true
-          else
-            write_and_logging 'Send break: ', 'exit'
-          end
-        when /#{@prompt[:yn]}/
-          # it must match before sub_prompt
-          write_and_logging 'Send yes: ', 'yes'
-        when /#{@prompt[:sub1]}/, /#{@prompt[:sub2]}/
-          write_and_logging 'Send return: ', ''
+      when /#{@prompt[:password]}/, /#{@prompt[:enable_password]}/
+        write_and_logging 'Send password', embed_password(binding), true
+      when /#{@prompt[:username]}/
+        write_and_logging 'Send username: ', embed_user_name(binding)
+      when /#{@prompt[:command2]}/
+        if !cmd_list.empty?
+          # Notice `cmd_list` was changed
+          write_and_logging 'Send command: ', embed_command(cmd_list.shift, binding)
         else
-          @logger.error "Unknown prompt #{prompt}"
+          write_and_logging 'Send break: ', 'exit'
+        end
+      when /#{@prompt[:command1]}/
+        if !cmd_list.empty?
+          write_and_logging 'Send enable command: ', @prompt[:enable_command]
+          @enable_mode = true
+        else
+          write_and_logging 'Send break: ', 'exit'
+        end
+      when /#{@prompt[:yn]}/
+        # it must match before sub_prompt
+        write_and_logging 'Send yes: ', 'yes'
+      when /#{@prompt[:sub1]}/, /#{@prompt[:sub2]}/
+        write_and_logging 'Send return: ', ''
+      else
+        @logger.error "Unknown prompt #{prompt}"
       end
     end
   end
