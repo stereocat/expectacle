@@ -10,7 +10,7 @@ module Expectacle
   class Thrower
     attr_accessor :logger
 
-    def initialize(timeout: 60, verbose: true, base_dir: '', logger: $stdout)
+    def initialize(timeout: 60, verbose: true, base_dir: Dir.pwd, logger: $stdout)
       # remote connection timeout (sec)
       @timeout = timeout
       # cli mode flag
@@ -18,7 +18,7 @@ module Expectacle
       # debug (use debug print to stdout)
       $expect_verbose = verbose
       # base dir
-      @base_dir = File.expand_path(__dir__ + base_dir)
+      @base_dir = base_dir
       # logger
       setup_default_logger(logger)
     end

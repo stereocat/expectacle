@@ -1,11 +1,11 @@
 # Expectacle
 
-Expectacle ("expect + spectacle") is a small wrapper of `pty/expect`.
+Expectacle ("expect + spectacle") is a small wrapper of `pty`/`expect`.
 It can send commands (command-list) to hosts (including network devices etc)
 using telnet/ssh session.
 
 Expectacle is portable (instead of less feature).
-Because it depends on only standard modules (YAML, ERB, PTY, Expect).
+Because it depends on only standard modules (YAML, ERB, PTY, Expect and Logger).
 It can work on almost ruby(>2.2) system without installation other gems. (probably...)
 
 ## Installation
@@ -46,7 +46,7 @@ $ export L2SW_PASS=`./bin/readne`
 Input: (type password)
 ```
 
-- `SimpleCommandThrowre::Thrower` read prompt-file by "type" parameter in host-list file.
+- `Expectacle::Thrower` read prompt-file by "type" parameter in host-list file.
   - In prompt-file, prompt regexps that used for interactive operation to host
     are defined. (These regexp are common information for some host-groups. (vendor, OS, ...))
   - Prompt-file is searched by filename: `#{type}_prompt.yml`,
@@ -60,18 +60,21 @@ Input: (type password)
 ### Expectacle::Thrower
 
 `Expectacle::Thrower` argument description.
-- `:timeout` : (Optional) Timeout interval (sec) to connect a host. (default: 60sec)
+- `:timeout` : (Optional) Timeout interval (sec) to connect a host.
+  (default: 60sec)
 - `:verbose` : (Optional) When `:verbose` is `false`,
   `Expectacle` does not output spawned process input/output to standard-out(`$stdout`).
   (default: `true`)
-- `:base_dir`: (Optional) Base path to search host/prompt/command files.
+- `:base_dir`: (Optional) Base path to search host/prompt/command files. 
+  (default: current working directory (`Dir.pwd`))
   - `#{base_dir}/commands`: command-list file directory.
   - `#{base_dir}/prompts` : prompt-file directory.
   - `#{base_dir}/hosts` : host-file directory.
-- `:logger` : (Optional) IO object to logging `Expectacle` operations. (default: `$stdout`)
+- `:logger` : (Optional) IO object to logging `Expectacle` operations.
+  (default: `$stdout`)
 
 **Notice** : When `Expectacle` success to connect(spawn) host,
-it will change to privilege (root/super-user/enable) mode at first, ASAP.
+it will change the user mode to privilege (root/super-user/enable) at first, ASAP.
 All commands are executed with privilege mode at the host.
 
 ### Host-list parameter
@@ -106,7 +109,7 @@ Prompt file is a table of prompt regexp of host group(type).
 Command-list is a simple list of command-string.
 A command-string can contain host-parameter reference by ERB.
 
-For example, if you want to save configuration of a cisco device to tftp server:
+For example, if you want to save configuration of a Cisco device to tftp server:
 - Add a parameter to tftp server info (IP address) in host-list file. (`vendor/hosts/l2switch.yml`)
 ```YAML
 - :hostname : 'l2sw1'
