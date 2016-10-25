@@ -3,4 +3,4 @@
 require 'expectacle/version'
 require 'expectacle/thrower'
 
-module Expectacle ; end
+module Expectacle; end
