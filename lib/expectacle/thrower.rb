@@ -9,6 +9,7 @@ require 'logger'
 module Expectacle
   class Thrower
     attr_accessor :logger
+    attr_reader :base_dir
 
     def initialize(timeout: 60, verbose: true, base_dir: '', logger: $stdout)
       # remote connection timeout (sec)
@@ -18,21 +19,21 @@ module Expectacle
       # debug (use debug print to stdout)
       $expect_verbose = verbose
       # base dir
-      @base_dir = File.expand_path(__dir__ + base_dir)
+      @base_dir = File.expand_path(File.join(__dir__,  base_dir))
       # logger
       setup_default_logger(logger)
     end
 
     def prompts_dir
-      File.expand_path(@base_dir + '/prompts')
+      File.join @base_dir, 'prompts'
     end
 
     def hosts_dir
-      File.expand_path(@base_dir + '/hosts')
+      File.join @base_dir, 'hosts'
     end
 
     def commands_dir
-      File.expand_path(@base_dir + '/commands')
+      File.join @base_dir, 'commands'
     end
 
     def run_command_for_all_hosts(host_list_file, command_list_file)
