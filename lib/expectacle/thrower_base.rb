@@ -41,7 +41,7 @@ module Expectacle
 
     def do_for_all_hosts(host_list_file)
       # host list to send commands
-      @host_list = YAML.load_file("#{hosts_dir}/#{host_list_file}")
+      load_host_list host_list_file
       @host_list.each do |host_param|
         @host_param = host_param
         yield
@@ -50,7 +50,7 @@ module Expectacle
 
     def ready_to_open_host_session
       # prompt regexp of device
-      @prompt = load_prompt_regexp
+      load_prompt_file
       spawn_cmd = make_spawn_command
       if @prompt && spawn_cmd
         yield spawn_cmd
@@ -103,9 +103,26 @@ module Expectacle
       end
     end
 
-    def load_prompt_regexp
+    def load_yaml_file(file_type, file_name)
+      YAML.load_file file_name
+    rescue StandardError => error
+      @logger.error "Cannot load #{file_type}: #{file_name}"
+      raise error
+    end
+
+    def load_host_list(host_list_file)
+      host_list_file = "#{hosts_dir}/#{host_list_file}"
+      @host_list = load_yaml_file('host list file', host_list_file)
+    end
+
+    def load_prompt_file
       prompt_file = "#{prompts_dir}/#{@host_param[:type]}_prompt.yml"
-      File.file?(prompt_file) ? YAML.load_file(prompt_file) : nil
+      @prompt = load_yaml_file('prompt file', prompt_file)
+    end
+
+    def load_command_list(command_list_file)
+      command_list_file = "#{commands_dir}/#{command_list_file}"
+      @command_list = load_yaml_file('command list file', command_list_file)
     end
 
     def setup_default_logger(logger_io)
@@ -146,6 +163,7 @@ module Expectacle
     end
 
     def embed_password(binding)
+      @host_param[:enable] = '_NOT_DEFINED_' unless @host_param.key?(:enable)
       base_str = @enable_mode ? @host_param[:enable] : @host_param[:password]
       check_embed_envvar(base_str)
       passwd_erb = ERB.new(base_str)
