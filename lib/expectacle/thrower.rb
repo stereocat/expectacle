@@ -11,6 +11,12 @@ module Expectacle
       end
     end
 
+    def preview_parameter(host_list_file, command_list_file)
+      do_for_all_hosts(host_list_file) do
+        preview_command_for_host command_list_file
+      end
+    end
+
     private
 
     def run_command_for_host(command_list_file)
@@ -21,12 +27,44 @@ module Expectacle
       end
     end
 
+    def preview_command_for_host(command_list_file)
+      ready_to_open_host_session do |spawn_cmd|
+        preview_command spawn_cmd, command_list_file
+      end
+    end
+
     def run_command(command_list_file)
-      @command_list = YAML.load_file("#{commands_dir}/#{command_list_file}")
+      load_command_list command_list_file
       do_on_interactive_process do |match|
         @logger.debug "Read: #{match}"
         exec_each_prompt match[1]
       end
+    end
+
+    def preview_host_param
+      host_param = @host_param.dup
+      enable_mode = @enable_mode
+      @enable_mode = false
+      host_param[:username] = embed_user_name(binding)
+      host_param[:password] = embed_password(binding)
+      @enable_mode = true
+      host_param[:enable] = embed_password(binding)
+      @enable_mode = enable_mode
+      host_param
+    end
+
+    def preview_command_list(command_list_file)
+      load_command_list command_list_file
+      @command_list.map { |cmd| embed_command(cmd, binding) }
+    end
+
+    def preview_command(spawn_cmd, command_list_file)
+      data = {}
+      data[:spawn_cmd] = spawn_cmd
+      data[:prompt] = @prompt
+      data[:host] = preview_host_param
+      data[:commands] = preview_command_list(command_list_file)
+      print YAML.dump(data)
     end
 
     def exec_rest_commands

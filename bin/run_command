@@ -2,12 +2,31 @@
 # frozen_string_literal: true
 
 require 'expectacle'
+require 'optparse'
 
-if ARGV.size != 2
-  puts "#{$PROGRAM_NAME} <host_list.yml> <command_list.yml>"
-  exit
+option = {}
+opt = OptionParser.new
+opt.on('-h', '--hosts=FILE', 'Host list file') do |value|
+  option[:hosts] = value
 end
+opt.on('-c', '--commands=FILE', 'Command list file') do |value|
+  option[:commands] = value
+end
+opt.on('-p', '--preview', 'Preview parameter') do |value|
+  option[:preview] = value
+end
+opt.on('-r', '--run', 'Run(exec) commands to each hosts') do |value|
+  option[:run] = value
+end
+opt.parse!(ARGV)
+
 file_dir = File.dirname(File.expand_path(__FILE__))
 base_dir = File.expand_path('../vendor', file_dir)
 thrower = Expectacle::Thrower.new(base_dir: base_dir)
-thrower.run_command_for_all_hosts(ARGV[0], ARGV[1])
+if option[:preview]
+  thrower.preview_parameter(option[:hosts], option[:commands])
+elsif option[:run]
+  thrower.run_command_for_all_hosts(option[:hosts], option[:commands])
+else
+  STDERR.puts "#{$PROGRAM_NAME}: Action(preview/run) did not specified."
+end
