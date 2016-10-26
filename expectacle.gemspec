@@ -9,21 +9,23 @@ Gem::Specification.new do |spec|
   spec.authors       = ['stereocat']
   spec.email         = ['stereocat@gmail.com']
 
-  spec.summary       = %q{Simple expect wrapper to send commands to a devices.}
-  spec.description   = %q{Expectacle is simple wrapper of pty/expect.}
+  spec.summary       = 'Simple expect wrapper to send commands to a devices.'
+  spec.description   = 'Expectacle is simple wrapper of pty/expect.'
   spec.homepage      = 'https://github.com/stereocat/expectacle'
   spec.license       = 'MIT'
 
-  # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
-  # to allow pushing to a single host or delete this section to allow pushing to any host.
+  # Prevent pushing this gem to RubyGems.org.
+  # To allow pushes either set the 'allowed_push_host'
+  # to allow pushing to a single host or delete this section
+  # to allow pushing to any host.
   if spec.respond_to?(:metadata)
     spec.metadata['allowed_push_host'] = "TODO: Set to 'http://mygemserver.com'"
   else
-    raise "RubyGems 2.0 or newer is required to protect against " \
-      "public gem pushes."
+    raise 'RubyGems 2.0 or newer is required to protect against ' \
+      'public gem pushes.'
   end
 
-  spec.files         = `git ls-files -z`.split("\x0").reject do |f|
+  spec.files = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
   end
   spec.bindir        = 'exe'

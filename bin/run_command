@@ -4,8 +4,10 @@
 require 'expectacle'
 
 if ARGV.size != 2
-  puts "#{$0} <host_list.yml> <command_list.yml>"
+  puts "#{$PROGRAM_NAME} <host_list.yml> <command_list.yml>"
   exit
 end
-thrower = Expectacle::Thrower.new(base_dir: '/../../vendor')
+file_dir = File.dirname(File.expand_path(__FILE__))
+base_dir = File.expand_path('../vendor', file_dir)
+thrower = Expectacle::Thrower.new(base_dir: base_dir)
 thrower.run_command_for_all_hosts(ARGV[0], ARGV[1])

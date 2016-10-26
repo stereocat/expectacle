@@ -3,4 +3,5 @@
 require 'expectacle/version'
 require 'expectacle/thrower'
 
-module Expectacle ; end
+# Expectable: simple pry/expect wrapper.
+module Expectacle; end
