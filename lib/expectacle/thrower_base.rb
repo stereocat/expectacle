@@ -8,8 +8,10 @@ require 'logger'
 
 module Expectacle
   # Basic state setup/management
+  # rubocop:disable Metrics/ClassLength
   class ThrowerBase
     attr_accessor :logger
+    attr_reader :base_dir
 
     def initialize(timeout: 60, verbose: true,
                    base_dir: Dir.pwd, logger: $stdout)
@@ -20,21 +22,21 @@ module Expectacle
       # debug (use debug print to stdout)
       $expect_verbose = verbose
       # base dir
-      @base_dir = base_dir
+      @base_dir = File.expand_path(base_dir)
       # logger
       setup_default_logger(logger)
     end
 
     def prompts_dir
-      File.expand_path(@base_dir + '/prompts')
+      File.join @base_dir, 'prompts'
     end
 
     def hosts_dir
-      File.expand_path(@base_dir + '/hosts')
+      File.join @base_dir, 'hosts'
     end
 
     def commands_dir
-      File.expand_path(@base_dir + '/commands')
+      File.join @base_dir, 'commands'
     end
 
     private
@@ -181,4 +183,5 @@ module Expectacle
       uname_erb.result(binding)
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end
