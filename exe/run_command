@@ -12,6 +12,9 @@ end
 opt.on('-c', '--commands=FILE', 'Command list file') do |value|
   option[:commands] = value
 end
+opt.on('-b', '--base-dir=DIR', 'Base directory path') do |value|
+  option[:base_dir] = value
+end
 opt.on('-p', '--preview', 'Preview parameter') do |value|
   option[:preview] = value
 end
@@ -21,7 +24,11 @@ end
 opt.parse!(ARGV)
 
 file_dir = File.dirname(File.expand_path(__FILE__))
-base_dir = File.expand_path('../vendor', file_dir)
+base_dir = if option.key?(:base_dir)
+             option[:base_dir]
+           else
+             File.expand_path('../vendor', file_dir)
+           end
 thrower = Expectacle::Thrower.new(base_dir: base_dir)
 if option[:preview]
   thrower.preview_parameter(option[:hosts], option[:commands])
