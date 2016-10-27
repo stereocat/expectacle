@@ -3,6 +3,7 @@
 
 require 'expectacle'
 require 'optparse'
+require 'yaml'
 
 option = {}
 opt = OptionParser.new
@@ -30,10 +31,13 @@ base_dir = if option.key?(:base_dir)
              File.expand_path('../vendor', file_dir)
            end
 thrower = Expectacle::Thrower.new(base_dir: base_dir)
+
+hosts = YAML.load_file(File.join(thrower.hosts_dir, option[:hosts]))
+commands = YAML.load_file(File.join(thrower.commands_dir, option[:commands]))
 if option[:preview]
-  thrower.preview_parameter(option[:hosts], option[:commands])
+  thrower.preview_parameter(hosts, commands)
 elsif option[:run]
-  thrower.run_command_for_all_hosts(option[:hosts], option[:commands])
+  thrower.run_command_for_all_hosts(hosts, commands)
 else
   STDERR.puts "#{$PROGRAM_NAME}: Action(preview/run) did not specified."
 end

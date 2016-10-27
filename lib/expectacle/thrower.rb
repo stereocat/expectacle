@@ -5,36 +5,39 @@ require 'expectacle/thrower_base'
 module Expectacle
   # Thrower logic(command list operation)
   class Thrower < ThrowerBase
-    def run_command_for_all_hosts(host_list_file, command_list_file)
-      do_for_all_hosts(host_list_file) do
-        run_command_for_host command_list_file
+    def run_command_for_all_hosts(hosts, commands)
+      @commands = commands
+      hosts.each do |each|
+        @host_param = each
+        run_command_for_host
       end
     end
 
-    def preview_parameter(host_list_file, command_list_file)
-      do_for_all_hosts(host_list_file) do
-        preview_command_for_host command_list_file
+    def preview_parameter(hosts, commands)
+      @commands = commands
+      hosts.each do |each|
+        @host_param = each
+        preview_command_for_host
       end
     end
 
     private
 
-    def run_command_for_host(command_list_file)
+    def run_command_for_host
       ready_to_open_host_session do |spawn_cmd|
         open_interactive_process(spawn_cmd) do
-          run_command command_list_file
+          run_command
         end
       end
     end
 
-    def preview_command_for_host(command_list_file)
+    def preview_command_for_host
       ready_to_open_host_session do |spawn_cmd|
-        preview_command spawn_cmd, command_list_file
+        preview_command spawn_cmd
       end
     end
 
-    def run_command(command_list_file)
-      load_command_list command_list_file
+    def run_command
       do_on_interactive_process do |match|
         @logger.debug "Read: #{match}"
         exec_each_prompt match[1]
@@ -53,22 +56,21 @@ module Expectacle
       host_param
     end
 
-    def preview_command_list(command_list_file)
-      load_command_list command_list_file
-      @command_list.map { |cmd| embed_command(cmd, binding) }
+    def preview_commands
+      @commands.map { |cmd| embed_command(cmd, binding) }
     end
 
-    def preview_command(spawn_cmd, command_list_file)
+    def preview_command(spawn_cmd)
       data = {}
       data[:spawn_cmd] = spawn_cmd
       data[:prompt] = @prompt
       data[:host] = preview_host_param
-      data[:commands] = preview_command_list(command_list_file)
+      data[:commands] = preview_commands
       print YAML.dump(data)
     end
 
     def exec_rest_commands
-      if !@command_list.empty?
+      if !@commands.empty?
         yield
       else
         write_and_logging 'Send break: ', 'exit'
@@ -77,8 +79,8 @@ module Expectacle
 
     def exec_in_privilege_mode
       exec_rest_commands do
-        # Notice: @command_list changed
-        command = @command_list.shift
+        # Notice: @commands changed
+        command = @commands.shift
         write_and_logging 'Send command: ', embed_command(command, binding)
       end
     end
