@@ -87,9 +87,8 @@ module Expectacle
     def ssh_command
       ['ssh',
        '-o StrictHostKeyChecking=no',
-       # for old cisco device
-       '-o KexAlgorithms=+diffie-hellman-group1-sha1',
-       '-l', embed_user_name(binding),
+       '-o KexAlgorithms=+diffie-hellman-group1-sha1', # for old cisco device
+       "-l #{embed_user_name(binding)}",
        @host_param[:ipaddr]].join(' ')
     end
 

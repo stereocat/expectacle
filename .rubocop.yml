@@ -1,5 +1,9 @@
 inherit_from: .rubocop_todo.yml
 
+Metrics/LineLength:
+  Exclude:
+    - 'spec/**/*_spec.rb'
+
 Style/BlockComments:
   Exclude:
     - 'spec/spec_helper.rb'
