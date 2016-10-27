@@ -8,7 +8,6 @@ require 'logger'
 
 module Expectacle
   # Basic state setup/management
-  # rubocop:disable Metrics/ClassLength
   class ThrowerBase
     attr_accessor :logger
     attr_reader :base_dir
@@ -40,15 +39,6 @@ module Expectacle
     end
 
     private
-
-    def do_for_all_hosts(host_list_file)
-      # host list to send commands
-      load_host_list host_list_file
-      @host_list.each do |host_param|
-        @host_param = host_param
-        yield
-      end
-    end
 
     def ready_to_open_host_session
       # prompt regexp of device
@@ -111,19 +101,9 @@ module Expectacle
       raise error
     end
 
-    def load_host_list(host_list_file)
-      host_list_file = "#{hosts_dir}/#{host_list_file}"
-      @host_list = load_yaml_file('host list file', host_list_file)
-    end
-
     def load_prompt_file
       prompt_file = "#{prompts_dir}/#{@host_param[:type]}_prompt.yml"
       @prompt = load_yaml_file('prompt file', prompt_file)
-    end
-
-    def load_command_list(command_list_file)
-      command_list_file = "#{commands_dir}/#{command_list_file}"
-      @command_list = load_yaml_file('command list file', command_list_file)
     end
 
     def setup_default_logger(logger_io)
@@ -182,5 +162,4 @@ module Expectacle
       uname_erb.result(binding)
     end
   end
-  # rubocop:enable Metrics/ClassLength
 end
