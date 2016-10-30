@@ -8,13 +8,13 @@ require 'syslog/logger'
 
 option = {}
 opt = OptionParser.new
-opt.on('-h', '--hosts=FILE', 'Host list file') do |value|
+opt.on('-h', '--hosts=FILE', 'Set host-list file') do |value|
   option[:hosts] = value
 end
-opt.on('-c', '--commands=FILE', 'Command list file') do |value|
+opt.on('-c', '--commands=FILE', 'Set command-list file') do |value|
   option[:commands] = value
 end
-opt.on('-b', '--base-dir=DIR', 'Base directory path') do |value|
+opt.on('-b', '--base-dir=DIR', 'Set base directory path') do |value|
   option[:base_dir] = value
 end
 opt.on('-p', '--preview', 'Preview parameter') do |value|
@@ -23,24 +23,43 @@ end
 opt.on('-r', '--run', 'Run(exec) commands to each hosts') do |value|
   option[:run] = value
 end
-opt.on('-s', '--syslog', 'Use syslog logger (use localhost syslog)') do |value|
+opt.on('-s', '--syslog', 'Set syslog logger (localhost syslog)') do |value|
   option[:syslog] = value
+end
+opt.on('-t', '--timeout=SEC', 'Set seconds to timeout') do |value|
+  option[:timeout] = value
+end
+opt.on('-q', '--quiet', 'Stop printing results to standard out') do |value|
+  option[:quiet] = value
+end
+opt.on('-d', '--debug', 'Set logging level to DEBUG') do |value|
+  option[:debug] = value
 end
 opt.parse!(ARGV)
 
+# basic setting
+verbose = option.key?(:quiet) ? false : true
+timeout = option.key?(:timeout) ? option[:timeout] : 60
 base_dir = if option.key?(:base_dir)
              option[:base_dir]
            else
              file_dir = File.dirname(File.expand_path(__FILE__))
              File.expand_path('../vendor', file_dir)
            end
-thrower = Expectacle::Thrower.new(base_dir: base_dir)
 
+# create thrower
+thrower = Expectacle::Thrower.new(base_dir: base_dir,
+                                  verbose: verbose,
+                                  timeout: timeout)
+
+# setup logger options
 if option[:syslog]
   thrower.logger = Syslog::Logger.new 'Expectacle'
   thrower.setup_logger
 end
+thrower.logger.level = Logger::DEBUG if option.key?(:debug) && option[:debug]
 
+# run or preview
 hosts = YAML.load_file(File.join(thrower.hosts_dir, option[:hosts]))
 commands = YAML.load_file(File.join(thrower.commands_dir, option[:commands]))
 if option[:preview]

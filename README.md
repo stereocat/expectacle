@@ -30,7 +30,7 @@ Or install it yourself as:
 ### Send commands to hosts
 See [exe/run_command](./exe/run_command) and [vendor directory](./vendor).
 
-`run_command` can send commands to hosts.
+`run_command` can send commands to hosts with `-r`/`--run` option.
 
     $ bundle exec run_command -r -h l2switch.yml -c cisco_show_arp.yml
 
@@ -97,7 +97,7 @@ stereocat@tftpserver:~/expectacle$ bundle exec run_command -p -h l2switch.yml -c
 ---
 (snip)
 ```
-**Notice** : Passwords were masked above example, but actually, raw password string is printed out.
+**Notice** : Passwords were masked above example, but actually, raw password strings are printed out.
 
 ### Use Syslog
 
@@ -105,6 +105,19 @@ With `-s`/`--syslog`, [run_command](./exe/run_command) changes logging instance 
 So, log messages are printed out to syslog on localhost.
 
     $ bundle exec run_command -rs -h l2switch.yml -c cisco_show_arp.yml
+
+### Quiet mode
+
+With `-q`/`--quiet`, [run_command](./exe/run_command) stop printing out results
+received from a host to standard out. For example:
+
+    $ bundle exec run_command -rq -h l2switch.yml -c cisco_show_arp.yml
+
+the command prints only log message (without host output) to standard out.
+If you use options syslog(`-s`) and quiet(`-q`),
+there is nothing to be appeared in terminal (standard out).
+
+    $ bundle exec run_command -rqs -h l2switch.yml -c cisco_show_arp.yml
 
 ## Parameter Definitions
 
@@ -170,7 +183,7 @@ For example, if you want to save configuration of a Cisco device to tftp server:
   :username : "<%= ENV['L2SW_USER'] %>"
   :password : "<%= ENV['L2SW_PASS'] %>"
   :enable : "<%= ENV['L2SW_PASS'] %>"
-  :tftp_server: '192.168.2.16'
+  :tftp_server: '192.168.20.170'
 - :hostname : 'l2sw2'
   :type : 'c3750g'
   :ipaddr : '192.168.20.151'
@@ -178,7 +191,7 @@ For example, if you want to save configuration of a Cisco device to tftp server:
   :username : "<%= ENV['L2SW_USER'] %>"
   :password : "<%= ENV['L2SW_PASS'] %>"
   :enable : "<%= ENV['L2SW_PASS'] %>"
-  :tftp_server: '192.168.2.16'
+  :tftp_server: '192.168.20.170'
 ```
 
 - Write [command-list file](vendor/commands/cisco_save_config_tftp.yml) using ERB.
