@@ -1,4 +1,5 @@
 # Expectacle
+[![Gem Version](https://badge.fury.io/rb/expectacle.svg)](https://badge.fury.io/rb/expectacle)
 
 Expectacle ("expect + spectacle") is a small wrapper of `pty`/`expect`.
 It can send commands (command-list) to hosts (including network devices etc)
@@ -26,32 +27,33 @@ Or install it yourself as:
 
 ## Usage
 
-### Utility Script
-See `bin/run_command` and `vendor` directory.
+### Send commands to hosts
+See [exe/run_command](./exe/run_command) and [vendor directory](./vendor).
 
 `run_command` can send commands to hosts.
 
-    $ bundle exec ./bin/run_command l2switch.yml cisco_show_arp.yml
+    $ bundle exec run_command -r -h l2switch.yml -c cisco_show_arp.yml
 
-- `l2switch.yml` is host-list file.
+- See details of command line options with `--help` option.
+- [l2switch.yml](./vendor/hosts/l2switch.yml) is host-list file.
   It is a data definitions for each hosts to send commands.
   - At username and password (login/enable) parameter,
     you can write environment variables with ERB manner to avoid write raw login information.
-  - `bin/readne` is a small utility shell-script to set environment variable from CLI.
+  - [exe/readne](./exe/readne) is a small bash script to set environment variable in your shell.
 
 ```
-$ export L2SW_USER=`./bin/readne`
+$ export L2SW_USER=`./exe/readne`
 Input: (type username)
-$ export L2SW_PASS=`./bin/readne`
+$ export L2SW_PASS=`./exe/readne`
 Input: (type password)
 ```
 
 - `Expectacle::Thrower` read prompt-file by "type" parameter in host-list file.
   - In prompt-file, prompt regexps that used for interactive operation to host
     are defined. (These regexp are common information for some host-groups. (vendor, OS, ...))
-  - Prompt-file is searched by filename: `#{type}_prompt.yml`,
+  - Prompt-file is searched by filename: `#{type}_prompt.yml` from [prompts directory](./vendor/prompts).
     `type` parameter defined in host-list file.
-- `cisco_show_arp.yml` is command-list file.
+- [cisco_show_arp.yml](./vendor/commands/cisco_show_arp.yml) is command-list file.
   - it is a list of commands.
 - Each files are written by YAML.
 
@@ -95,7 +97,7 @@ stereocat@tftpserver:~/expectacle$ bundle exec run_command -p -h l2switch.yml -c
 ---
 (snip)
 ```
-**Notice** : Passwords were masked above example, but actually, raw password string are printed out.
+**Notice** : Passwords were masked above example, but actually, raw password string is printed out.
 
 ### Use Syslog
 
@@ -139,7 +141,7 @@ Host-list file is a list of host-parameters.
 It can use ERB to set values from environment variable in `:username`, `:password` and `:enable`.
 
 You can add other parameter(s) to refer in command-list files.
-See also: "Command list" section.
+See also: [Command list](#command-list-with-erb) section.
 
 ### Prompt parameter
 Prompt file is a table of prompt regexp of host group(type).
@@ -159,11 +161,11 @@ Command-list is a simple list of command-string.
 A command-string can contain host-parameter reference by ERB.
 
 For example, if you want to save configuration of a Cisco device to tftp server:
-- Add a parameter to tftp server info (IP address) in host-list file. (`vendor/hosts/l2switch.yml`)
+- Add a parameter to tftp server info (IP address) in [host-list file](vendor/hosts/l2switch.yml).
 ```YAML
 - :hostname : 'l2sw1'
   :type : 'c3750g'
-  :ipaddr : '192.168.0.1'
+  :ipaddr : '192.168.20.150'
   :protocol : 'ssh'
   :username : "<%= ENV['L2SW_USER'] %>"
   :password : "<%= ENV['L2SW_PASS'] %>"
@@ -171,7 +173,7 @@ For example, if you want to save configuration of a Cisco device to tftp server:
   :tftp_server: '192.168.2.16'
 - :hostname : 'l2sw2'
   :type : 'c3750g'
-  :ipaddr : '192.168.0.2'
+  :ipaddr : '192.168.20.151'
   :protocol : 'ssh'
   :username : "<%= ENV['L2SW_USER'] %>"
   :password : "<%= ENV['L2SW_PASS'] %>"
@@ -179,10 +181,11 @@ For example, if you want to save configuration of a Cisco device to tftp server:
   :tftp_server: '192.168.2.16'
 ```
 
-- Write command-list file using ERB.
+- Write [command-list file](vendor/commands/cisco_save_config_tftp.yml) using ERB.
   When send a command to host, ERB string was evaluated in `Expectacle::Thrower` bindings.
-  Then, it can refer host-parameter as `@host_param` hash. (`vendor/commands/cisco_save_config_tftp.yml`)
-  -  When exec below command-list, host configuration will be saved a file as `l2sw1.confg` on tftp server.
+  Then, it can refer host-parameter as `@host_param` hash.
+  - When exec below command-list, host configuration will be saved a file as `l2sw1.confg` on tftp server.
+  - See also: [parameter preview](#parameter-expansion-and-preview) section.
 
 ```YAML
 - "copy run start"
@@ -197,6 +200,11 @@ Now, Expectacle sends fixed command for sub-prompt.
 (These actions were defined for cisco to execute above "copy run" example...)
 - Yex/No (`:yn`) : always sends "yes"
 - Sub prompt (`:sub1` and `:sub2`) : always sends Empty string (RETURN)
+
+### Error handling
+Expectacle does not have error message handling feature.
+If a host returns a error message when expectacle sent a command,
+then expectacle ignores it and continue sending rest commands (until command list is empty).
 
 ## Contributing
 
