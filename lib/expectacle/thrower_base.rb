@@ -14,6 +14,8 @@ module Expectacle
 
     def initialize(timeout: 60, verbose: true,
                    base_dir: Dir.pwd, logger: $stdout)
+      # default
+      @host_param = {}
       # remote connection timeout (sec)
       @timeout = timeout
       # cli mode flag
@@ -23,7 +25,8 @@ module Expectacle
       # base dir
       @base_dir = File.expand_path(base_dir)
       # logger
-      setup_default_logger(logger)
+      @logger = Logger.new(logger)
+      setup_default_logger
     end
 
     def prompts_dir
@@ -38,7 +41,20 @@ module Expectacle
       File.join @base_dir, 'commands'
     end
 
+    def setup_logger
+      @logger.level = Logger::INFO
+      @logger.formatter = proc do |severity, datetime, progname, msg|
+        "#{datetime} #{progname} [#{severity}] #{msg}\n"
+      end
+    end
+
     private
+
+    def setup_default_logger
+      @logger.progname = 'Expectacle'
+      @logger.datetime_format = '%Y-%m-%d %H:%M:%D %Z'
+      setup_logger
+    end
 
     def ready_to_open_host_session
       # prompt regexp of device
@@ -78,7 +94,7 @@ module Expectacle
       ['ssh',
        '-o StrictHostKeyChecking=no',
        '-o KexAlgorithms=+diffie-hellman-group1-sha1', # for old cisco device
-       "-l #{embed_user_name(binding)}",
+       "-l #{embed_user_name}",
        @host_param[:ipaddr]].join(' ')
     end
 
@@ -104,16 +120,6 @@ module Expectacle
     def load_prompt_file
       prompt_file = "#{prompts_dir}/#{@host_param[:type]}_prompt.yml"
       @prompt = load_yaml_file('prompt file', prompt_file)
-    end
-
-    def setup_default_logger(logger_io)
-      @logger = Logger.new(logger_io)
-      @logger.level = Logger::INFO
-      @logger.progname = 'Expectacle'
-      @logger.datetime_format = '%Y-%m-%d %H:%M:%D %Z'
-      @logger.formatter = proc do |severity, datetime, progname, msg|
-        "#{datetime} #{progname} [#{severity}] #{msg}\n"
-      end
     end
 
     def expect_regexp
@@ -143,7 +149,7 @@ module Expectacle
       end
     end
 
-    def embed_password(binding)
+    def embed_password
       @host_param[:enable] = '_NOT_DEFINED_' unless @host_param.key?(:enable)
       base_str = @enable_mode ? @host_param[:enable] : @host_param[:password]
       check_embed_envvar(base_str)
@@ -151,12 +157,12 @@ module Expectacle
       passwd_erb.result(binding)
     end
 
-    def embed_command(command, binding)
+    def embed_command(command)
       command_erb = ERB.new(command)
       command_erb.result(binding)
     end
 
-    def embed_user_name(binding)
+    def embed_user_name
       check_embed_envvar(@host_param[:username])
       uname_erb = ERB.new(@host_param[:username])
       uname_erb.result(binding)

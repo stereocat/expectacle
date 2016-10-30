@@ -4,6 +4,7 @@
 require 'expectacle'
 require 'optparse'
 require 'yaml'
+require 'syslog/logger'
 
 option = {}
 opt = OptionParser.new
@@ -22,15 +23,23 @@ end
 opt.on('-r', '--run', 'Run(exec) commands to each hosts') do |value|
   option[:run] = value
 end
+opt.on('-s', '--syslog', 'Use syslog logger (use localhost syslog)') do |value|
+  option[:syslog] = value
+end
 opt.parse!(ARGV)
 
-file_dir = File.dirname(File.expand_path(__FILE__))
 base_dir = if option.key?(:base_dir)
              option[:base_dir]
            else
+             file_dir = File.dirname(File.expand_path(__FILE__))
              File.expand_path('../vendor', file_dir)
            end
 thrower = Expectacle::Thrower.new(base_dir: base_dir)
+
+if option[:syslog]
+  thrower.logger = Syslog::Logger.new 'Expectacle'
+  thrower.setup_logger
+end
 
 hosts = YAML.load_file(File.join(thrower.hosts_dir, option[:hosts]))
 commands = YAML.load_file(File.join(thrower.commands_dir, option[:commands]))

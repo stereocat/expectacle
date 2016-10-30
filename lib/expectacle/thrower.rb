@@ -6,8 +6,8 @@ module Expectacle
   # Thrower logic(command list operation)
   class Thrower < ThrowerBase
     def run_command_for_all_hosts(hosts, commands)
-      @commands = commands
       hosts.each do |each|
+        @commands = commands.dup # Notice: @commands will be decremented.
         @host_param = each
         run_command_for_host
       end
@@ -33,7 +33,7 @@ module Expectacle
 
     def preview_command_for_host
       ready_to_open_host_session do |spawn_cmd|
-        preview_command spawn_cmd
+        print YAML.dump(whole_previewed_parameters(spawn_cmd))
       end
     end
 
@@ -44,29 +44,29 @@ module Expectacle
       end
     end
 
-    def preview_host_param
+    def previewed_host_param
       host_param = @host_param.dup
       enable_mode = @enable_mode
       @enable_mode = false
-      host_param[:username] = embed_user_name(binding)
-      host_param[:password] = embed_password(binding)
+      host_param[:username] = embed_user_name
+      host_param[:password] = embed_password
       @enable_mode = true
-      host_param[:enable] = embed_password(binding)
+      host_param[:enable] = embed_password
       @enable_mode = enable_mode
       host_param
     end
 
-    def preview_commands
-      @commands.map { |cmd| embed_command(cmd, binding) }
+    def previewed_commands
+      @commands.map { |cmd| embed_command(cmd) }
     end
 
-    def preview_command(spawn_cmd)
-      data = {}
-      data[:spawn_cmd] = spawn_cmd
-      data[:prompt] = @prompt
-      data[:host] = preview_host_param
-      data[:commands] = preview_commands
-      print YAML.dump(data)
+    def whole_previewed_parameters(spawn_cmd)
+      {
+        spawn_cmd: spawn_cmd,
+        prompt: @prompt,
+        host: previewed_host_param,
+        commands: previewed_commands
+      }
     end
 
     def exec_rest_commands
@@ -81,7 +81,7 @@ module Expectacle
       exec_rest_commands do
         # Notice: @commands changed
         command = @commands.shift
-        write_and_logging 'Send command: ', embed_command(command, binding)
+        write_and_logging 'Send command: ', embed_command(command)
       end
     end
 
@@ -114,9 +114,9 @@ module Expectacle
     def exec_each_prompt(prompt)
       case prompt
       when /#{@prompt[:password]}/, /#{@prompt[:enable_password]}/
-        write_and_logging 'Send password', embed_password(binding), true
+        write_and_logging 'Send password', embed_password, true
       when /#{@prompt[:username]}/
-        write_and_logging 'Send username: ', embed_user_name(binding)
+        write_and_logging 'Send username: ', embed_user_name
       when /#{@prompt[:command2]}/, /#{@prompt[:command1]}/
         exec_by_mode(prompt)
       when /#{@prompt[:yn]}/, /#{@prompt[:sub1]}/, /#{@prompt[:sub2]}/
