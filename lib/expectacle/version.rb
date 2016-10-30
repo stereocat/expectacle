@@ -1,4 +1,4 @@
 module Expectacle
   # Gem version
-  VERSION = '0.0.1'.freeze
+  VERSION = '0.0.2'.freeze
 end
