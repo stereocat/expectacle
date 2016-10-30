@@ -55,6 +55,55 @@ Input: (type password)
   - it is a list of commands.
 - Each files are written by YAML.
 
+### Parameter expansion and preview
+Expectacle has parameter expansion feature using ERB.
+In a command list file,
+you can write command strings including environment variable and parameters defined in host file.
+See [Parameter definitions](#parameter-definitions) section about details of parameter expansion feature.
+
+Thereby, there are some risks sending danger commands by using wrong parameter and command definitions.
+
+Then, you can preview expanded command strings to send a host and parameters before execute actually.
+For Example:
+```
+stereocat@tftpserver:~/expectacle$ bundle exec run_command -p -h l2switch.yml -c cisco_save_config_tftp.yml
+---
+:spawn_cmd: ssh -o StrictHostKeyChecking=no -o KexAlgorithms=+diffie-hellman-group1-sha1
+  -l cisco 192.168.20.150
+:prompt:
+  :password: "^Password\\s*:"
+  :username: "^Username\\s*:"
+  :sub1: "\\][:\\?]"
+  :sub2: "\\[confirm\\]"
+  :yn: "\\[yes\\/no\\]:"
+  :command1: "^[\\w\\-]+>"
+  :command2: "^[\\w\\-]+(:?\\(config\\))?\\#"
+  :enable_password: SAME_AS_LOGIN_PASSWORD
+  :enable_command: enable
+:host:
+  :hostname: l2sw1
+  :type: c3750g
+  :ipaddr: 192.168.20.150
+  :protocol: ssh
+  :username: cisco
+  :password: ********
+  :enable: ********
+  :tftp_server: 192.168.20.170
+:commands:
+- copy run start
+- copy run tftp://192.168.20.170/l2sw1.confg
+---
+(snip)
+```
+**Notice** : Passwords were masked above example, but actually, raw password string are printed out.
+
+### Use Syslog
+
+With `-s`/`--syslog`, [run_command](./exe/run_command) changes logging instance to `syslog/logger`.
+So, log messages are printed out to syslog on localhost.
+
+    $ bundle exec run_command -rs -h l2switch.yml -c cisco_show_arp.yml
+
 ## Parameter Definitions
 
 ### Expectacle::Thrower
@@ -147,7 +196,7 @@ Feature for sub-prompt (interactive command) is not enough.
 Now, Expectacle sends fixed command for sub-prompt.
 (These actions were defined for cisco to execute above "copy run" example...)
 - Yex/No (`:yn`) : always sends "yes"
-- Sub prompt (`:sub1` and `:sub2`) : Empty string (RETURN)
+- Sub prompt (`:sub1` and `:sub2`) : always sends Empty string (RETURN)
 
 ## Contributing
 

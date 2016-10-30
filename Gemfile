@@ -9,4 +9,10 @@ group :test do
   gem 'simplecov'
 end
 
+group :development do
+  gem 'yard'
+  gem 'redcarpet'
+  gem 'github-markup'
+end
+
 gem 'rubocop'

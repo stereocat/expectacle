@@ -9,9 +9,19 @@ require 'logger'
 module Expectacle
   # Basic state setup/management
   class ThrowerBase
+    # @return [Logger] Logger instance.
     attr_accessor :logger
+    # @return [String] Base directory path to find params/hosts/commands file.
     attr_reader :base_dir
 
+    # Constructor
+    # @param timeout [Integer] Seconds to timeout. (default: 60sec)
+    # @param verbose [Boolean] Flag to enable verbose output.
+    #   (default: `true`)
+    # @param base_dir [String] Base directory to find files.
+    #   (default: `Dir.pwd`)
+    # @param logger [IO] IO Object to logging. (default `$stdout`)
+    # @return [Expectacle::ThrowerBase]
     def initialize(timeout: 60, verbose: true,
                    base_dir: Dir.pwd, logger: $stdout)
       # default
@@ -29,18 +39,25 @@ module Expectacle
       setup_default_logger
     end
 
+    # Path to prompt file directory.
+    # @return [String]
     def prompts_dir
       File.join @base_dir, 'prompts'
     end
 
+    # Path to host list file directory.
+    # @return [String]
     def hosts_dir
       File.join @base_dir, 'hosts'
     end
 
+    # Path to command list file directory.
+    # @return [String]
     def commands_dir
       File.join @base_dir, 'commands'
     end
 
+    # Setup common settings of logger instance.
     def setup_logger
       @logger.level = Logger::INFO
       @logger.formatter = proc do |severity, datetime, progname, msg|

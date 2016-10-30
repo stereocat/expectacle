@@ -18,3 +18,15 @@ rescue LoadError
     $stderr.puts 'RuboCop is disabled'
   end
 end
+
+begin
+  require 'yard'
+  require 'yard/rake/yardoc_task'
+  YARD::Rake::YardocTask.new do |task|
+    task.files = FileList['./lib/**/*.rb']
+  end
+rescue LoadError
+  task :yard do
+    $stderr.puts 'YARD is disabled'
+  end
+end

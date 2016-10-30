@@ -5,6 +5,9 @@ require 'expectacle/thrower_base'
 module Expectacle
   # Thrower logic(command list operation)
   class Thrower < ThrowerBase
+    # Run(exec) commands for all hosts.
+    # @param [Array<Hash>] hosts Host parameters (read from host list file).
+    # @param [Array<String>] commands Commands (read from command list file).
     def run_command_for_all_hosts(hosts, commands)
       hosts.each do |each|
         @commands = commands.dup # Notice: @commands will be decremented.
@@ -13,6 +16,9 @@ module Expectacle
       end
     end
 
+    # Preview all parameters for all hosts.
+    # @param [Array<Hash>] hosts Host parameters (read from host list file).
+    # @param [Array<String>] commands Commands (read from command list file).
     def preview_parameter(hosts, commands)
       @commands = commands
       hosts.each do |each|
