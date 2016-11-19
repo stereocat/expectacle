@@ -5,6 +5,7 @@ require 'expect'
 require 'yaml'
 require 'erb'
 require 'logger'
+require 'syslog/logger'
 
 module Expectacle
   # Basic state setup/management
@@ -20,7 +21,8 @@ module Expectacle
     #   (default: `true`)
     # @param base_dir [String] Base directory to find files.
     #   (default: `Dir.pwd`)
-    # @param logger [IO] IO Object to logging. (default `$stdout`)
+    # @param logger [IO,String,Symbol] IO Object (default `$stdout`),
+    #   File name, or :syslog to logging.
     # @return [Expectacle::ThrowerBase]
     def initialize(timeout: 60, verbose: true,
                    base_dir: Dir.pwd, logger: $stdout)
@@ -35,8 +37,7 @@ module Expectacle
       # base dir
       @base_dir = File.expand_path(base_dir)
       # logger
-      @logger = Logger.new(logger)
-      setup_default_logger
+      setup_default_logger(logger)
     end
 
     # Path to prompt file directory.
@@ -57,20 +58,26 @@ module Expectacle
       File.join @base_dir, 'commands'
     end
 
-    # Setup common settings of logger instance.
-    def setup_logger
-      @logger.level = Logger::INFO
-      @logger.formatter = proc do |severity, datetime, progname, msg|
-        "#{datetime} #{progname} [#{severity}] #{msg}\n"
-      end
-    end
-
     private
 
-    def setup_default_logger
-      @logger.progname = 'Expectacle'
-      @logger.datetime_format = '%Y-%m-%d %H:%M:%D %Z'
-      setup_logger
+    def default_io_logger(logger_io, progname)
+      logger = Logger.new(logger_io)
+      logger.progname = progname
+      logger.datetime_format = '%Y-%m-%d %H:%M:%D %Z'
+      logger
+    end
+
+    def setup_default_logger(logger)
+      progname = 'Expectacle'
+      @logger = if logger == :syslog
+                  Syslog::Logger.new(progname)
+                else
+                  default_io_logger(logger, progname)
+                end
+      @logger.level = Logger::INFO
+      @logger.formatter = proc do |severity, datetime, pname, msg|
+        "#{datetime} #{pname} [#{severity}] #{msg}\n"
+      end
     end
 
     def ready_to_open_host_session
