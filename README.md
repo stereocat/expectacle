@@ -99,12 +99,18 @@ stereocat@tftpserver:~/expectacle$ bundle exec run_command -p -h l2switch.yml -c
 ```
 **Notice** : Passwords were masked above example, but actually, raw password strings are printed out.
 
-### Use Syslog
+### Change place of log message
+
+With `-l`/`--logfile`, [run_command](./exe/run_command) changes logging IO to file instead of standard-out (default).
+
+    $ bundle exec run_command -r -l foo.log -h l2switch.yml -c cisco_show_arp.yml
 
 With `-s`/`--syslog`, [run_command](./exe/run_command) changes logging instance to `syslog/logger`.
 So, log messages are printed out to syslog on localhost.
 
     $ bundle exec run_command -rs -h l2switch.yml -c cisco_show_arp.yml
+
+**Notice** : When specified `--logfile` and `--syslog` at the same time, `--syslog` is used to logging.
 
 ### Quiet mode
 

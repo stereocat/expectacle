@@ -4,7 +4,6 @@
 require 'expectacle'
 require 'optparse'
 require 'yaml'
-require 'syslog/logger'
 
 option = {}
 opt = OptionParser.new
@@ -26,6 +25,9 @@ end
 opt.on('-s', '--syslog', 'Set syslog logger (localhost syslog)') do |value|
   option[:syslog] = value
 end
+opt.on('-l', '--logfile=FILE', 'Set file to save log message') do |value|
+  option[:logfile] = value
+end
 opt.on('-t', '--timeout=SEC', 'Set seconds to timeout') do |value|
   option[:timeout] = value
 end
@@ -40,6 +42,13 @@ opt.parse!(ARGV)
 # basic setting
 verbose = option.key?(:quiet) ? false : true
 timeout = option.key?(:timeout) ? option[:timeout] : 60
+logger = if option.key?(:syslog)
+           :syslog
+         elsif option.key?(:logfile)
+           option[:logfile]
+         else
+           $stdout
+         end
 base_dir = if option.key?(:base_dir)
              option[:base_dir]
            else
@@ -50,13 +59,9 @@ base_dir = if option.key?(:base_dir)
 # create thrower
 thrower = Expectacle::Thrower.new(base_dir: base_dir,
                                   verbose: verbose,
-                                  timeout: timeout)
-
-# setup logger options
-if option[:syslog]
-  thrower.logger = Syslog::Logger.new 'Expectacle'
-  thrower.setup_logger
-end
+                                  timeout: timeout,
+                                  logger: logger)
+# setup logging level
 thrower.logger.level = Logger::DEBUG if option.key?(:debug) && option[:debug]
 
 # run or preview
