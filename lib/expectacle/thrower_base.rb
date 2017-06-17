@@ -119,13 +119,13 @@ module Expectacle
        '-o StrictHostKeyChecking=no',
        '-o KexAlgorithms=+diffie-hellman-group1-sha1', # for old cisco device
        "-l #{embed_user_name}",
-       @host_param[:ipaddr]].join(' ')
+       embed_ipaddr].join(' ')
     end
 
     def make_spawn_command
       case @host_param[:protocol]
       when /^telnet$/i
-        ['telnet', @host_param[:ipaddr]].join(' ')
+        ['telnet', embed_ipaddr].join(' ')
       when /^ssh$/i
         ssh_command
       else
@@ -190,6 +190,12 @@ module Expectacle
       check_embed_envvar(@host_param[:username])
       uname_erb = ERB.new(@host_param[:username])
       uname_erb.result(binding)
+    end
+
+    def embed_ipaddr
+      check_embed_envvar(@host_param[:ipaddr])
+      ipaddr_erb = ERB.new(@host_param[:ipaddr])
+      ipaddr_erb.result(binding)
     end
   end
 end
