@@ -115,11 +115,8 @@ module Expectacle
     end
 
     def ssh_command
-      ['ssh',
-       '-o StrictHostKeyChecking=no',
-       '-o KexAlgorithms=+diffie-hellman-group1-sha1', # for old cisco device
-       "-l #{embed_user_name}",
-       embed_ipaddr].join(' ')
+      opts = load_ssh_opts_file
+      ['ssh', opts, "-l #{embed_user_name}", embed_ipaddr].join(' ')
     end
 
     def make_spawn_command
@@ -144,6 +141,11 @@ module Expectacle
     def load_prompt_file
       prompt_file = "#{prompts_dir}/#{@host_param[:type]}_prompt.yml"
       @prompt = load_yaml_file('prompt file', prompt_file)
+    end
+
+    def load_ssh_opts_file
+      ssh_opts_file = "#{@base_dir}/ssh_opts.yml"
+      @ssh_opts = load_yaml_file('ssh opts file', ssh_opts_file)
     end
 
     def expect_regexp
