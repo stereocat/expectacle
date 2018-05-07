@@ -211,6 +211,23 @@ For example, if you want to save configuration of a Cisco device to tftp server:
 - "copy run tftp://<%= @host_param[:tftp_server] %>/<%= @host_param[:hostname] %>.confg"
 ```
 
+## SSH Options
+
+When use `ssh` (OpenSSH) command to spawn device, the user can set options for the command via `#{base_dir}/ssh_opts.yml`.
+With options as list in [ssh_opts.yml](./vendor/ssh_opts.yml),
+```
+- '-o StrictHostKeyChecking=no'
+- '-o KexAlgorithms=+diffie-hellman-group1-sha1'
+- '-o Ciphers=+aes128-cbc,3des-cbc,aes192-cbc,aes256-cbc'
+```
+it works same as `~/.ssh/config` below.
+```
+Host *
+    StrictHostKeyChecking no
+    KexAlgorithms +diffie-hellman-group1-sha1
+    Ciphers +aes128-cbc,3des-cbc,aes192-cbc,aes256-cbc
+```
+
 ## TODO
 
 ### Sub prompt operation (interactive command)
