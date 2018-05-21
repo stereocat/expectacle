@@ -1,12 +1,12 @@
 require 'bundler/gem_tasks'
-task default: [:spec, :rubocop]
+task default: %i[spec rubocop]
 
 begin
   require 'rspec/core/rake_task'
   RSpec::Core::RakeTask.new
 rescue LoadError
   task :spec do
-    $stderr.puts 'RSpec is disabled'
+    warn 'RSpec is disabled'
   end
 end
 
@@ -15,7 +15,7 @@ begin
   RuboCop::RakeTask.new
 rescue LoadError
   task :rubocop do
-    $stderr.puts 'RuboCop is disabled'
+    warn 'RuboCop is disabled'
   end
 end
 
@@ -27,6 +27,6 @@ begin
   end
 rescue LoadError
   task :yard do
-    $stderr.puts 'YARD is disabled'
+    warn 'YARD is disabled'
   end
 end

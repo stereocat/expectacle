@@ -211,10 +211,10 @@ For example, if you want to save configuration of a Cisco device to tftp server:
 - "copy run tftp://<%= @host_param[:tftp_server] %>/<%= @host_param[:hostname] %>.confg"
 ```
 
-## SSH Options
+## Default SSH Options
 
-When use `ssh` (OpenSSH) command to spawn device, the user can set options for the command via `#{base_dir}/ssh_opts.yml`.
-With options as list in [ssh_opts.yml](./vendor/ssh_opts.yml),
+When use `ssh` (OpenSSH) command to spawn device, the user can set options for the command via `#{base_dir}/opts/ssh_opts.yml`.
+With options as list in [ssh_opts.yml](./vendor/opts/ssh_opts.yml),
 ```
 - '-o StrictHostKeyChecking=no'
 - '-o KexAlgorithms=+diffie-hellman-group1-sha1'
@@ -227,6 +227,30 @@ Host *
     KexAlgorithms +diffie-hellman-group1-sha1
     Ciphers +aes128-cbc,3des-cbc,aes192-cbc,aes256-cbc
 ```
+
+## Use Local Serial Console
+
+Expectacle can handle `cu` (call up another system) command to operate via device local serial port.
+
+If you use Ubuntu, install `cu` at first.
+```
+sudo apt install cu
+```
+
+Set parameter `:protocol` to `cu`, and write `cu` command options as `:cu_opts`. Usually, one serial port correspond to one device. So host parameter `:cu_opts` is used as options to connect a host via serial port. For example:
+```
+- :hostname : 'l2sw1'
+  :type : 'c3750g'
+  :protocol : 'cu'
+  :cu_opts : '-l /dev/ttyUSB0 -s 9600'
+```
+File `#{base_dir}/opts/cu_opts.yml` has default options for `cu` command.
+
+At last, execute by `run_command` with `sudo`. Because it requires superuser permission to handle local device.
+```
+sudo -E bundle exec run_command -r -h l2switch.yml -c cisco_show_version.yml
+```
+**Notice** : Without `sudo -E` (`--preserve-env`) option, it do not preserve environment variables such as username/password and others you defined.
 
 ## TODO
 

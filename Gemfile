@@ -10,9 +10,9 @@ group :test do
 end
 
 group :development do
-  gem 'yard'
-  gem 'redcarpet'
   gem 'github-markup'
+  gem 'redcarpet'
+  gem 'yard'
 end
 
 gem 'rubocop'

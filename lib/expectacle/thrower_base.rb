@@ -58,6 +58,12 @@ module Expectacle
       File.join @base_dir, 'commands'
     end
 
+    # Path to span command options file directory.
+    # @return [String]
+    def opts_dir
+      File.join @base_dir, 'opts'
+    end
+
     private
 
     def default_io_logger(logger_io, progname)
@@ -81,8 +87,8 @@ module Expectacle
     end
 
     def ready_to_open_host_session
-      # prompt regexp of device
-      load_prompt_file
+      @local_serial = false # default for host
+      load_prompt_file # prompt regexp of device
       spawn_cmd = make_spawn_command
       if @prompt && spawn_cmd
         yield spawn_cmd
@@ -92,7 +98,7 @@ module Expectacle
     end
 
     def do_on_interactive_process
-      until @reader.eof?
+      until @reader.closed? || @reader.eof?
         @reader.expect(expect_regexp, @timeout) do |match|
           yield match
         end
@@ -111,12 +117,18 @@ module Expectacle
         @writer.sync = true
         yield
       end
-      @logger.info "End spawn: #{@host_param[:hostname]}"
     end
 
     def ssh_command
-      opts = load_ssh_opts_file
+      opts = load_spawn_command_opts_file
       ['ssh', opts, "-l #{embed_user_name}", embed_ipaddr].join(' ')
+    end
+
+    def cu_command
+      @local_serial = true
+      # @serial_exit = '~.'
+      opts = load_spawn_command_opts_file
+      ['cu', @host_param[:cu_opts], opts].join(' ')
     end
 
     def make_spawn_command
@@ -125,6 +137,8 @@ module Expectacle
         ['telnet', embed_ipaddr].join(' ')
       when /^ssh$/i
         ssh_command
+      when /^cu$/i
+        cu_command
       else
         @logger.error "Unknown protocol #{@host_param[:protocol]}"
         nil
@@ -143,9 +157,14 @@ module Expectacle
       @prompt = load_yaml_file('prompt file', prompt_file)
     end
 
-    def load_ssh_opts_file
-      ssh_opts_file = "#{@base_dir}/ssh_opts.yml"
-      @ssh_opts = load_yaml_file('ssh opts file', ssh_opts_file)
+    def load_spawn_command_opts_file
+      opts_file = "#{opts_dir}/#{@host_param[:protocol]}_opts.yml"
+      if File.exist?(opts_file)
+        load_yaml_file("#{@host_param[:protocol]} opts file", opts_file)
+      else
+        @logger.warn "Opts file #{opts_file} not found."
+        []
+      end
     end
 
     def expect_regexp

@@ -32,6 +32,7 @@ module Expectacle
     def run_command_for_host
       ready_to_open_host_session do |spawn_cmd|
         open_interactive_process(spawn_cmd) do
+          before_run_command
           run_command
         end
       end
@@ -40,6 +41,14 @@ module Expectacle
     def preview_command_for_host
       ready_to_open_host_session do |spawn_cmd|
         print YAML.dump(whole_previewed_parameters(spawn_cmd))
+      end
+    end
+
+    def before_run_command
+      return unless @local_serial
+      # for `cu` command
+      @reader.expect(/^Connected\./, 1) do
+        write_and_logging 'Send enter to connect serial', '', true
       end
     end
 
@@ -80,6 +89,12 @@ module Expectacle
         yield
       else
         write_and_logging 'Send break: ', 'exit'
+        if @local_serial
+          # write_and_logging 'Disconnect: ', @serial_exit
+          @logger.info 'Close IO for spawn command'
+          @reader.close
+          @writer.close
+        end
       end
     end
 
