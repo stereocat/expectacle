@@ -20,8 +20,15 @@ module Expectacle
     # @param [Array<Hash>] hosts Host parameters (read from host list file).
     # @param [Array<String>] commands Commands (read from command list file).
     def preview_parameter(hosts, commands)
+      print YAML.dump(previewed_data(hosts, commands))
+    end
+
+    # Preview all parameters for all hosts (for testing)
+    # @param [Array<Hash>] hosts Host parameters (read from host list file).
+    # @param [Array<String>] commands Commands (read from command list file).
+    def previewed_data(hosts, commands)
       @commands = commands
-      hosts.each do |each|
+      hosts.map do |each|
         @host_param = each
         preview_command_for_host
       end
@@ -40,7 +47,7 @@ module Expectacle
 
     def preview_command_for_host
       ready_to_open_host_session do |spawn_cmd|
-        print YAML.dump(whole_previewed_parameters(spawn_cmd))
+        whole_previewed_parameters(spawn_cmd)
       end
     end
 
@@ -48,7 +55,7 @@ module Expectacle
       return unless @local_serial
       # for `cu` command
       @reader.expect(/^Connected\./, 1) do
-        write_and_logging 'Send enter to connect serial', '', true
+        write_and_logging 'Send enter to connect serial', "\r\n", true
       end
     end
 
