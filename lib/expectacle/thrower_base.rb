@@ -194,29 +194,28 @@ module Expectacle
       end
     end
 
+    def embed_var(param)
+      check_embed_envvar(param)
+      erb = ERB.new(param)
+      erb.result(binding)
+    end
+
     def embed_password
       @host_param[:enable] = '_NOT_DEFINED_' unless @host_param.key?(:enable)
       base_str = @enable_mode ? @host_param[:enable] : @host_param[:password]
-      check_embed_envvar(base_str)
-      passwd_erb = ERB.new(base_str)
-      passwd_erb.result(binding)
+      embed_var(base_str)
     end
 
     def embed_command(command)
-      command_erb = ERB.new(command)
-      command_erb.result(binding)
+      embed_var(command)
     end
 
     def embed_user_name
-      check_embed_envvar(@host_param[:username])
-      uname_erb = ERB.new(@host_param[:username])
-      uname_erb.result(binding)
+      embed_var(@host_param[:username])
     end
 
     def embed_ipaddr
-      check_embed_envvar(@host_param[:ipaddr])
-      ipaddr_erb = ERB.new(@host_param[:ipaddr])
-      ipaddr_erb.result(binding)
+      embed_var(@host_param[:ipaddr])
     end
   end
 end

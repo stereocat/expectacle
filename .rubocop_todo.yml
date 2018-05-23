@@ -24,4 +24,4 @@ Metrics/MethodLength:
 # Configuration parameters: AllowedVariables.
 Style/GlobalVars:
   Exclude:
-    - 'lib/expectacle/thrower_base.rb'
+    - 'lib/expectacle/thrower_base.rb' # $expect_verbose

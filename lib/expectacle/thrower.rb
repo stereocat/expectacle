@@ -72,6 +72,7 @@ module Expectacle
       @enable_mode = false
       host_param[:username] = embed_user_name
       host_param[:password] = embed_password
+      host_param[:ipaddr] = embed_ipaddr
       @enable_mode = true
       host_param[:enable] = embed_password
       @enable_mode = enable_mode
