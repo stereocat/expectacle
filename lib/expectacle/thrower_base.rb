@@ -126,7 +126,6 @@ module Expectacle
 
     def cu_command
       @local_serial = true
-      # @serial_exit = '~.'
       opts = load_spawn_command_opts_file
       ['cu', @host_param[:cu_opts], opts].join(' ')
     end
@@ -181,7 +180,12 @@ module Expectacle
     def write_and_logging(message, command, secret = false)
       logging_message = secret ? message : message + command
       @logger.info logging_message
-      @writer.puts command
+      if @writer.closed?
+        @logger.error "Try to write #{command}, but writer closed"
+        @commands.clear
+      else
+        @writer.puts command
+      end
     end
 
     def check_embed_envvar(command)

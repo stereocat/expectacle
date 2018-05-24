@@ -3,6 +3,9 @@
 require 'expectacle/thrower_base'
 
 module Expectacle
+  # Maximum number to retly authentication
+  MAX_AUTH_COUNT = 10
+
   # Thrower logic(command list operation)
   class Thrower < ThrowerBase
     # Run(exec) commands for all hosts.
@@ -11,6 +14,8 @@ module Expectacle
     def run_command_for_all_hosts(hosts, commands)
       hosts.each do |each|
         @commands = commands.dup # Notice: @commands will be decremented.
+        @commands_len = @commands.length
+        @auth_count = 0
         @host_param = each
         run_command_for_host
       end
@@ -92,17 +97,36 @@ module Expectacle
       }
     end
 
+    def check_auth_count
+      if @commands.length == @commands_len
+        @auth_count += 1
+      else
+        @auth_count = 0
+        @commands_len = @commands.length
+      end
+      return unless @auth_count > MAX_AUTH_COUNT
+      @logger.error "Too many authentication retries (#{@auth_count} times)"
+      @commands = []
+      close_session
+    end
+
+    def clear_auth_count
+      @auth_count = 0
+    end
+
+    def close_session
+      write_and_logging 'Send break: ', 'exit'
+      return unless @local_serial
+      @logger.info 'Close IO for spawn command'
+      @reader.close
+      @writer.close
+    end
+
     def exec_rest_commands
       if !@commands.empty?
         yield
       else
-        write_and_logging 'Send break: ', 'exit'
-        if @local_serial
-          # write_and_logging 'Disconnect: ', @serial_exit
-          @logger.info 'Close IO for spawn command'
-          @reader.close
-          @writer.close
-        end
+        close_session
       end
     end
 
@@ -141,6 +165,7 @@ module Expectacle
     end
 
     def exec_each_prompt(prompt)
+      check_auth_count
       case prompt
       when /#{@prompt[:password]}/, /#{@prompt[:enable_password]}/
         write_and_logging 'Send password', embed_password, true
