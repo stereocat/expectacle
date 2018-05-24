@@ -2,16 +2,12 @@
 
 require 'pty'
 require 'expect'
-require 'yaml'
-require 'erb'
-require 'logger'
-require 'syslog/logger'
+require 'expectacle/thrower_base_io'
+require 'expectacle/thrower_base_params'
 
 module Expectacle
   # Basic state setup/management
   class ThrowerBase
-    # @return [Logger] Logger instance.
-    attr_accessor :logger
     # @return [String] Base directory path to find params/hosts/commands file.
     attr_reader :base_dir
 
@@ -66,26 +62,6 @@ module Expectacle
 
     private
 
-    def default_io_logger(logger_io, progname)
-      logger = Logger.new(logger_io)
-      logger.progname = progname
-      logger.datetime_format = '%Y-%m-%d %H:%M:%D %Z'
-      logger
-    end
-
-    def setup_default_logger(logger)
-      progname = 'Expectacle'
-      @logger = if logger == :syslog
-                  Syslog::Logger.new(progname)
-                else
-                  default_io_logger(logger, progname)
-                end
-      @logger.level = Logger::INFO
-      @logger.formatter = proc do |severity, datetime, pname, msg|
-        "#{datetime} #{pname} [#{severity}] #{msg}\n"
-      end
-    end
-
     def ready_to_open_host_session
       @local_serial = false # default for host
       load_prompt_file # prompt regexp of device
@@ -117,109 +93,6 @@ module Expectacle
         @writer.sync = true
         yield
       end
-    end
-
-    def ssh_command
-      opts = load_spawn_command_opts_file
-      ['ssh', opts, "-l #{embed_user_name}", embed_ipaddr].join(' ')
-    end
-
-    def cu_command
-      @local_serial = true
-      opts = load_spawn_command_opts_file
-      ['cu', @host_param[:cu_opts], opts].join(' ')
-    end
-
-    def make_spawn_command
-      case @host_param[:protocol]
-      when /^telnet$/i
-        ['telnet', embed_ipaddr].join(' ')
-      when /^ssh$/i
-        ssh_command
-      when /^cu$/i
-        cu_command
-      else
-        @logger.error "Unknown protocol #{@host_param[:protocol]}"
-        nil
-      end
-    end
-
-    def load_yaml_file(file_type, file_name)
-      YAML.load_file file_name
-    rescue StandardError => error
-      @logger.error "Cannot load #{file_type}: #{file_name}"
-      raise error
-    end
-
-    def load_prompt_file
-      prompt_file = "#{prompts_dir}/#{@host_param[:type]}_prompt.yml"
-      @prompt = load_yaml_file('prompt file', prompt_file)
-    end
-
-    def load_spawn_command_opts_file
-      opts_file = "#{opts_dir}/#{@host_param[:protocol]}_opts.yml"
-      if File.exist?(opts_file)
-        load_yaml_file("#{@host_param[:protocol]} opts file", opts_file)
-      else
-        @logger.warn "Opts file #{opts_file} not found."
-        []
-      end
-    end
-
-    def expect_regexp
-      /
-        ( #{@prompt[:password]} | #{@prompt[:enable_password]}
-        | #{@prompt[:username]}
-        | #{@prompt[:command1]} | #{@prompt[:command2]}
-        | #{@prompt[:sub1]} | #{@prompt[:sub2]}
-        | #{@prompt[:yn]}
-        )\s*$
-      /x
-    end
-
-    def write_and_logging(message, command, secret = false)
-      logging_message = secret ? message : message + command
-      @logger.info logging_message
-      if @writer.closed?
-        @logger.error "Try to write #{command}, but writer closed"
-        @commands.clear
-      else
-        @writer.puts command
-      end
-    end
-
-    def check_embed_envvar(command)
-      return unless command =~ /<%=\s*ENV\[[\'\"]?(.+)[\'\"]\]?\s*%>/
-      envvar_name = Regexp.last_match(1)
-      if !ENV.key?(envvar_name)
-        @logger.error "Variable name: #{envvar_name} is not found in ENV"
-      elsif ENV[envvar_name] =~ /^\s*$/
-        @logger.warn "Env var: #{envvar_name} exists, but null string"
-      end
-    end
-
-    def embed_var(param)
-      check_embed_envvar(param)
-      erb = ERB.new(param)
-      erb.result(binding)
-    end
-
-    def embed_password
-      @host_param[:enable] = '_NOT_DEFINED_' unless @host_param.key?(:enable)
-      base_str = @enable_mode ? @host_param[:enable] : @host_param[:password]
-      embed_var(base_str)
-    end
-
-    def embed_command(command)
-      embed_var(command)
-    end
-
-    def embed_user_name
-      embed_var(@host_param[:username])
-    end
-
-    def embed_ipaddr
-      embed_var(@host_param[:ipaddr])
     end
   end
 end

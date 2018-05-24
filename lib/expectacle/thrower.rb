@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require 'expectacle/thrower_base'
+require 'expectacle/thrower_preview'
+require 'expectacle/thrower_utils'
 
 module Expectacle
   # Maximum number to retly authentication
@@ -21,24 +22,6 @@ module Expectacle
       end
     end
 
-    # Preview all parameters for all hosts.
-    # @param [Array<Hash>] hosts Host parameters (read from host list file).
-    # @param [Array<String>] commands Commands (read from command list file).
-    def preview_parameter(hosts, commands)
-      print YAML.dump(previewed_data(hosts, commands))
-    end
-
-    # Preview all parameters for all hosts (for testing)
-    # @param [Array<Hash>] hosts Host parameters (read from host list file).
-    # @param [Array<String>] commands Commands (read from command list file).
-    def previewed_data(hosts, commands)
-      @commands = commands
-      hosts.map do |each|
-        @host_param = each
-        preview_command_for_host
-      end
-    end
-
     private
 
     def run_command_for_host
@@ -47,12 +30,6 @@ module Expectacle
           before_run_command
           run_command
         end
-      end
-    end
-
-    def preview_command_for_host
-      ready_to_open_host_session do |spawn_cmd|
-        whole_previewed_parameters(spawn_cmd)
       end
     end
 
@@ -69,57 +46,6 @@ module Expectacle
         @logger.debug "Read: #{match}"
         exec_each_prompt match[1]
       end
-    end
-
-    def previewed_host_param
-      host_param = @host_param.dup
-      enable_mode = @enable_mode
-      @enable_mode = false
-      host_param[:username] = embed_user_name
-      host_param[:password] = embed_password
-      host_param[:ipaddr] = embed_ipaddr
-      @enable_mode = true
-      host_param[:enable] = embed_password
-      @enable_mode = enable_mode
-      host_param
-    end
-
-    def previewed_commands
-      @commands.map { |cmd| embed_command(cmd) }
-    end
-
-    def whole_previewed_parameters(spawn_cmd)
-      {
-        spawn_cmd: spawn_cmd,
-        prompt: @prompt,
-        host: previewed_host_param,
-        commands: previewed_commands
-      }
-    end
-
-    def check_auth_count
-      if @commands.length == @commands_len
-        @auth_count += 1
-      else
-        @auth_count = 0
-        @commands_len = @commands.length
-      end
-      return unless @auth_count > MAX_AUTH_COUNT
-      @logger.error "Too many authentication retries (#{@auth_count} times)"
-      @commands = []
-      close_session
-    end
-
-    def clear_auth_count
-      @auth_count = 0
-    end
-
-    def close_session
-      write_and_logging 'Send break: ', 'exit'
-      return unless @local_serial
-      @logger.info 'Close IO for spawn command'
-      @reader.close
-      @writer.close
     end
 
     def exec_rest_commands
