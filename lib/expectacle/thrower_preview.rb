@@ -5,6 +5,13 @@ require 'expectacle/thrower_base'
 module Expectacle
   # Thrower logic(command list operation)
   class Thrower < ThrowerBase
+    # #preview_parameter
+    #   #previewed_data [for hosts & a host]
+    #     #ready_to_open_host_session #-> thrower_base
+    #       #whole_previewed_parameters
+    #         #previewed_host_param
+    #         #previewed_commands
+
     # Preview all parameters for all hosts.
     # @param [Array<Hash>] hosts Host parameters (read from host list file).
     # @param [Array<String>] commands Commands (read from command list file).
@@ -19,18 +26,26 @@ module Expectacle
       @commands = commands
       hosts.map do |each|
         @host_param = each
-        preview_command_for_host
+        # [for a host] operation
+        ready_to_open_host_session do |spawn_cmd|
+          whole_previewed_parameters(spawn_cmd)
+        end
       end
     end
 
     private
 
-    def preview_command_for_host
-      ready_to_open_host_session do |spawn_cmd|
-        whole_previewed_parameters(spawn_cmd)
-      end
+    # Combine previewed parameters
+    def whole_previewed_parameters(spawn_cmd)
+      {
+        spawn_cmd: spawn_cmd,
+        prompt: @prompt,
+        host: previewed_host_param,
+        commands: previewed_commands
+      }
     end
 
+    # Setup parameters for a host to preview
     def previewed_host_param
       host_param = @host_param.dup
       enable_mode = @enable_mode
@@ -44,17 +59,9 @@ module Expectacle
       host_param
     end
 
+    # Setup command list to preview
     def previewed_commands
       @commands.map { |cmd| embed_command(cmd) }
-    end
-
-    def whole_previewed_parameters(spawn_cmd)
-      {
-        spawn_cmd: spawn_cmd,
-        prompt: @prompt,
-        host: previewed_host_param,
-        commands: previewed_commands
-      }
     end
   end
 end

@@ -36,32 +36,31 @@ module Expectacle
       setup_default_logger(logger)
     end
 
-    # Path to prompt file directory.
-    # @return [String]
-    def prompts_dir
-      File.join @base_dir, 'prompts'
-    end
-
-    # Path to host list file directory.
-    # @return [String]
-    def hosts_dir
-      File.join @base_dir, 'hosts'
-    end
-
-    # Path to command list file directory.
-    # @return [String]
-    def commands_dir
-      File.join @base_dir, 'commands'
-    end
-
-    # Path to span command options file directory.
-    # @return [String]
-    def opts_dir
-      File.join @base_dir, 'opts'
-    end
-
     private
 
+    # #run_command_for_host [for a host]
+    #   #ready_to_open_host_session
+    #     - initialize prompts (`@prompt`), `spawn_cmd` string
+    #     #open_interactive_process
+    #       - spawn and setup @reader/@writer
+    #       #run_command
+    #         #do_on_interactive_process
+    #           - expect
+    #           #exec_each_prompt (will be overriden)
+
+    # Run(Send) command to host(interactive process)
+    def run_command_for_host
+      ready_to_open_host_session do |spawn_cmd|
+        open_interactive_process(spawn_cmd) do
+          before_run_command
+          run_command
+        end
+      end
+    end
+
+    # Setup a parameters for interactive process
+    # @yield [spawn_cmd] Operations for interactive process
+    # @yieldparam spawn_cmd [String] Command of interactive process
     def ready_to_open_host_session
       @local_serial = false # default for host
       load_prompt_file # prompt regexp of device
@@ -73,6 +72,39 @@ module Expectacle
       end
     end
 
+    # Spawn interactive process
+    # @yield [] Operations for interactive process
+    def open_interactive_process(spawn_cmd)
+      @logger.info "Begin spawn: #{spawn_cmd}"
+      PTY.spawn(spawn_cmd) do |reader, writer, _pid|
+        @enable_mode = false
+        @reader = reader
+        @writer = writer
+        @writer.sync = true
+        yield
+      end
+    end
+
+    # Pre-process before send command
+    def before_run_command
+      return unless @local_serial
+      # for `cu` command
+      @reader.expect(/^Connected\./, 1) do
+        write_and_logging 'Send enter to connect serial', "\r\n", true
+      end
+    end
+
+    # Send command to host(interactive process)
+    def run_command
+      do_on_interactive_process do |match|
+        @logger.debug "Read: #{match}"
+        exec_each_prompt match[1]
+      end
+    end
+
+    # Search prompt and send command, while process is opened
+    # @yield [match] Send operations when found prompt
+    # @yieldparam match [String] Expect matches string (prompt)
     def do_on_interactive_process
       until @reader.closed? || @reader.eof?
         @reader.expect(expect_regexp, @timeout) do |match|
@@ -84,15 +116,12 @@ module Expectacle
       @logger.debug "PTY raises Errno::EIO, #{error.message}"
     end
 
-    def open_interactive_process(spawn_cmd)
-      @logger.info "Begin spawn: #{spawn_cmd}"
-      PTY.spawn(spawn_cmd) do |reader, writer, _pid|
-        @enable_mode = false
-        @reader = reader
-        @writer = writer
-        @writer.sync = true
-        yield
-      end
+    # Send command when found prompt
+    # @abstract Subclass must override to send command (per prompt)
+    # @param _prompt [String] Prompt
+    # @raise [Error]
+    def exec_each_prompt(_prompt)
+      raise 'Called abstract method'
     end
   end
 end

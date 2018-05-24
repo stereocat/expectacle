@@ -228,16 +228,16 @@ Host *
     Ciphers +aes128-cbc,3des-cbc,aes192-cbc,aes256-cbc
 ```
 
-## Use Local Serial Console
+## Use Local Serial Port
 
 Expectacle can handle `cu` (call up another system) command to operate via device local serial port.
 
-If you use Ubuntu, install `cu` at first.
+At first, install `cu`. If you use Ubuntu, install it with `apt`.
 ```
 sudo apt install cu
 ```
 
-Set parameter `:protocol` to `cu`, and write `cu` command options as `:cu_opts`. Usually, one serial port correspond to one device. So host parameter `:cu_opts` is used as options to connect a host via serial port. For example:
+Next, set parameter `:protocol` to `cu`, and write `cu` command options as `:cu_opts`. Usually, one serial port correspond to one device. So host parameter `:cu_opts` is used as options to connect a host via serial port. For example:
 ```
 - :hostname : 'l2sw1'
   :type : 'c3750g'
